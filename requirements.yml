@@ -1,0 +1,17 @@
+name: yolo
+channels:
+  - pytorch
+  - conda-forge
+  - defaults
+dependencies:
+  - numpy
+  - cudatoolkit=10.1
+  - pytorch
+  - torchvision
+  - matplotlib
+  - tensorboard
+  - terminaltables
+  - pillow
+  - tqdm
+  - ipython
+  - intel-openmp
