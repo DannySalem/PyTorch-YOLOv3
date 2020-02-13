@@ -1,0 +1,4 @@
+classes= 12
+train=data/visdrone/train.txt
+valid=data/visdrone/valid.txt
+names=data/visdrone/visdrone.names
