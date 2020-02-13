@@ -16,6 +16,7 @@ import datetime
 import argparse
 
 import torch
+from sys import platform
 from torch.utils.data import DataLoader
 from torchvision import datasets
 from torchvision import transforms
@@ -54,8 +55,13 @@ if __name__ == "__main__":
 
     # Get data configuration
     data_config = parse_data_config(opt.data_config)
-    train_path = data_config["train"]
-    valid_path = data_config["valid"]
+    if platform == "linux" or platform == "linux2":
+        train_path = data_config["train_Linux"]
+        valid_path = data_config["valid_Linux"]
+    else:
+        train_path = data_config["train"]
+        valid_path = data_config["valid"]
+        
     class_names = load_classes(data_config["names"])
     # Initiate model
     model = Darknet(opt.model_def).to(device)
