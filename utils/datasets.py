@@ -57,7 +57,7 @@ class ImageFolder(Dataset):
 
 
 class ListDataset(Dataset):
-    def __init__(self, list_path, img_size=416, augment=True, multiscale=True, normalized_labels=True):
+    def __init__(self, list_path, img_size=416, augment=True, multiscale=True, normalized_labels=True, visdrone = True):
         with open(list_path, "r") as file:
             self.img_files = file.readlines()
 
@@ -73,6 +73,7 @@ class ListDataset(Dataset):
         self.min_size = self.img_size - 3 * 32
         self.max_size = self.img_size + 3 * 32
         self.batch_count = 0
+        self.visdrone = True
 
     def __getitem__(self, index):
 
@@ -81,9 +82,11 @@ class ListDataset(Dataset):
         # ---------
 
         img_path = self.img_files[index % len(self.img_files)].rstrip()
-
+        
         # Extract image as PyTorch tensor
         img = transforms.ToTensor()(Image.open(img_path).convert('RGB'))
+        original_height = img.shape[1]
+        original_width = img.shape[2]
 
         # Handle images with less than three channels
         if len(img.shape) != 3:
@@ -104,12 +107,23 @@ class ListDataset(Dataset):
 
         targets = None
         if os.path.exists(label_path):
-            boxes = torch.from_numpy(np.loadtxt(label_path).reshape(-1, 5))
+            if self.visdrone:
+
+                boxes = torch.from_numpy(np.loadtxt(label_path, usecols=(0,1,2,3,5), delimiter=',').reshape(-1, 5))
+                boxes[:,[4,0]] = boxes[:,[0,4]]
+                boxes[:, 1] = (boxes[:, 1] + (boxes[:, 3] / 2)) / original_width
+                boxes[:, 2] = (boxes[:, 2] + (boxes[:, 4] / 2)) / original_height
+                boxes[:, 3] = boxes[:, 3] / original_width
+                boxes[:, 4] = boxes[:, 4] / original_height
+            else:
+                boxes = torch.from_numpy(np.loadtxt(label_path).reshape(-1, 5))
+                
             # Extract coordinates for unpadded + unscaled image
             x1 = w_factor * (boxes[:, 1] - boxes[:, 3] / 2)
             y1 = h_factor * (boxes[:, 2] - boxes[:, 4] / 2)
             x2 = w_factor * (boxes[:, 1] + boxes[:, 3] / 2)
             y2 = h_factor * (boxes[:, 2] + boxes[:, 4] / 2)
+            
             # Adjust for added padding
             x1 += pad[0]
             y1 += pad[2]
@@ -120,7 +134,7 @@ class ListDataset(Dataset):
             boxes[:, 2] = ((y1 + y2) / 2) / padded_h
             boxes[:, 3] *= w_factor / padded_w
             boxes[:, 4] *= h_factor / padded_h
-
+            
             targets = torch.zeros((len(boxes), 6))
             targets[:, 1:] = boxes
 
@@ -128,7 +142,7 @@ class ListDataset(Dataset):
         if self.augment:
             if np.random.random() < 0.5:
                 img, targets = horisontal_flip(img, targets)
-
+ 
         return img_path, img, targets
 
     def collate_fn(self, batch):
