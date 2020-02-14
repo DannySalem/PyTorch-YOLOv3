@@ -15,4 +15,6 @@ class Logger(object):
         """Log scalar variables."""
         #summary = tf.Summary(value=[tf.Summary.Value(tag=tag, simple_value=value) for tag, value in tag_value_pairs])
         #self.writer.add_summary(summary, step)
-        self.writer.add_scalars('Summary', tag_value_pairs, global_step=step)
+        self.writer.add_scalars('Summary', dict(tag_value_pairs), global_step=step)
+        #for x in tag_value_pairs:
+        #    self.writer.add_scalar(x[0], x[1], global_step=step)
