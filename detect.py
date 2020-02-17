@@ -40,6 +40,14 @@ if __name__ == "__main__":
 
     os.makedirs("output", exist_ok=True)
 
+
+    opt.model_def = 'config/yolov3visdrone.cfg'
+    opt.weights_path = 'C:/Projects/PyTorch-YOLOv3/checkpoints/yolov3_ckpt_32.pth'
+    opt.visdrone = True
+    opt.image_folder = 'C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val'
+    opt.conf_thres = 0.4
+    opt.nms_thres = 0.2
+    opt.class_path = 'data/visdrone.names'
     # Set up model
     model = Darknet(opt.model_def, img_size=opt.img_size).to(device)
 
