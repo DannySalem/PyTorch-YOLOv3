@@ -1,20 +1,19 @@
 from __future__ import division
 
-from models import *
-from utils.utils import *
-from utils.datasets import *
+from models import Darknet
+from utils.utils import load_classes, non_max_suppression, rescale_boxes
+from utils.datasets import ImageFolder
 
 import os
-import sys
 import time
 import datetime
 import argparse
+import random
+import numpy as np
 
 from PIL import Image
 
 import torch
-from torch.utils.data import DataLoader
-from torchvision import datasets
 from torch.autograd import Variable
 
 import matplotlib.pyplot as plt
@@ -40,9 +39,8 @@ if __name__ == "__main__":
 
     os.makedirs("output", exist_ok=True)
 
-
     opt.model_def = 'config/yolov3visdrone.cfg'
-    opt.weights_path = 'C:/Projects/PyTorch-YOLOv3/checkpoints/yolov3_ckpt_32.pth'
+    opt.weights_path = 'C:/Projects/PyTorch-YOLOv3/checkpoints/yolov3_ckpt_99.pth'
     opt.visdrone = True
     opt.image_folder = 'C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val'
     opt.conf_thres = 0.4
@@ -60,7 +58,7 @@ if __name__ == "__main__":
 
     model.eval()  # Set in evaluation mode
 
-    dataloader = DataLoader(
+    dataloader = torch.utils.data.DataLoader(
         ImageFolder(opt.image_folder, img_size=opt.img_size),
         batch_size=opt.batch_size,
         shuffle=False,

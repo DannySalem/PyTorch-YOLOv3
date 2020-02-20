@@ -1,23 +1,16 @@
 from __future__ import division
 
-from models import *
-from utils.utils import *
-from utils.datasets import *
-from utils.parse_config import *
+from models import Darknet
+from utils.utils import non_max_suppression, xywh2xyxy, ap_per_class, get_batch_statistics, load_classes
+from utils.datasets import ListDataset
+from utils.parse_config import parse_data_config
 
-import os
-import sys
-import time
-import datetime
 import argparse
 import tqdm
+import numpy as np
 
 import torch
-from torch.utils.data import DataLoader
-from torchvision import datasets
-from torchvision import transforms
 from torch.autograd import Variable
-import torch.optim as optim
 
 
 def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size):
@@ -57,7 +50,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
         print('Model failed to detect any boxes in validation above threshold')
         print('Zeros passed for all metrics')
         print('-----------------------------------------------')
-        precision, recall, f1 = (None,None,None)
+        precision, recall, f1 = (None, None, None)
         AP = np.array([0] * len(np.unique(labels)))
         ap_class = np.unique(labels).astype("int32")
 

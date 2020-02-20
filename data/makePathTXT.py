@@ -25,4 +25,3 @@ txtfile = open(txtpath + 'val_Linux.txt', 'a')
 for filename in os.listdir(path2):
     print(output2)
     txtfile.write(output2 + filename + '\n')
-

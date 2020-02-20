@@ -1,27 +1,22 @@
 from __future__ import division
 
-from models import *
-from utils.logger import *
-from utils.utils import *
-from utils.datasets import *
-from utils.parse_config import *
+from models import Darknet
+from utils.logger import Logger
+from utils.utils import load_classes, weights_init_normal
+from utils.datasets import ListDataset
+from utils.parse_config import parse_data_config
 from test import evaluate
 
 from terminaltables import AsciiTable
 
 import os
-import sys
 import time
 import datetime
 import argparse
 
 import torch
 from sys import platform
-from torch.utils.data import DataLoader
-from torchvision import datasets
-from torchvision import transforms
 from torch.autograd import Variable
-import torch.optim as optim
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -39,7 +34,7 @@ if __name__ == "__main__":
     parser.add_argument("--multiscale_training", default=True, help="allow for multi-scale training")
     opt = parser.parse_args()
 
-    ## Hacky overide of defaults 
+    # Hacky overide of defaults
     opt.model_def = 'config/yolov3visdrone.cfg'
     opt.data_config = 'config/visdrone.data'
     opt.visdrone = True
@@ -75,12 +70,16 @@ if __name__ == "__main__":
             model.load_darknet_weights(opt.pretrained_weights)
 
     # Get dataloader
-    dataset = ListDataset(train_path, augment=True, multiscale=opt.multiscale_training, visdrone=opt.visdrone)
+    dataset = ListDataset(
+        train_path,
+        augment=True,
+        multiscale=opt.multiscale_training,
+        visdrone=opt.visdrone)
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=opt.batch_size,
         shuffle=True,
-        num_workers=0,#opt.n_cpu,
+        num_workers=0,  # opt.n_cpu,
         pin_memory=True,
         collate_fn=dataset.collate_fn
     )
@@ -103,13 +102,12 @@ if __name__ == "__main__":
         "conf_obj",
         "conf_noobj",
     ]
-    #import pdb; pdb.set_trace()
+    # import pdb; pdb.set_trace()
     for epoch in range(opt.epochs):
         model.train()
         start_time = time.time()
         for batch_i, (_, imgs, targets) in enumerate(dataloader):
             batches_done = len(dataloader) * epoch + batch_i
-            
             imgs = Variable(imgs.to(device))
             targets = Variable(targets.to(device), requires_grad=False)
 

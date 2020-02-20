@@ -1,17 +1,13 @@
 from __future__ import division
-import math
-import time
 import tqdm
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
-from torch.autograd import Variable
 import numpy as np
-import matplotlib.pyplot as plt
-import matplotlib.patches as patches
 
 
 def to_cpu(tensor):
+    """
+    Detach and move Pytorch tensor to CPU
+    """
     return tensor.detach().cpu()
 
 
@@ -25,6 +21,9 @@ def load_classes(path):
 
 
 def weights_init_normal(m):
+    """
+    Loads class labels at 'path'
+    """
     classname = m.__class__.__name__
     if classname.find("Conv") != -1:
         torch.nn.init.normal_(m.weight.data, 0.0, 0.02)
@@ -34,7 +33,9 @@ def weights_init_normal(m):
 
 
 def rescale_boxes(boxes, current_dim, original_shape):
-    """ Rescales bounding boxes to the original shape """
+    """
+    Rescales bounding boxes to the original shape
+    """
     orig_h, orig_w = original_shape
     # The amount of padding that was added
     pad_x = max(orig_h - orig_w, 0) * (current_dim / max(original_shape))
@@ -51,6 +52,10 @@ def rescale_boxes(boxes, current_dim, original_shape):
 
 
 def xywh2xyxy(x):
+    """
+    Convert midX midY Width Height to X1Y1,X2Y2 (top left corner, bottom
+    right corner)
+    """
     y = x.new(x.shape)
     y[..., 0] = x[..., 0] - x[..., 2] / 2
     y[..., 1] = x[..., 1] - x[..., 3] / 2
@@ -60,7 +65,8 @@ def xywh2xyxy(x):
 
 
 def ap_per_class(tp, conf, pred_cls, target_cls):
-    """ Compute the average precision, given the recall and precision curves.
+    """
+    Compute the average precision, given the recall and precision curves.
     Source: https://github.com/rafaelpadilla/Object-Detection-Metrics.
     # Arguments
         tp:    True positives (list).
@@ -115,7 +121,8 @@ def ap_per_class(tp, conf, pred_cls, target_cls):
 
 
 def compute_ap(recall, precision):
-    """ Compute the average precision, given the recall and precision curves.
+    """
+    Compute the average precision, given the recall and precision curves.
     Code originally from https://github.com/rbgirshick/py-faster-rcnn.
 
     # Arguments
@@ -143,7 +150,9 @@ def compute_ap(recall, precision):
 
 
 def get_batch_statistics(outputs, targets, iou_threshold):
-    """ Compute true positives, predicted scores and predicted labels per sample """
+    """
+    Compute true positives, predicted scores and predicted labels per sample
+    """
     batch_metrics = []
     for sample_i in range(len(outputs)):
 
@@ -182,6 +191,9 @@ def get_batch_statistics(outputs, targets, iou_threshold):
 
 
 def bbox_wh_iou(wh1, wh2):
+    """
+    Calculate IOU
+    """
     wh2 = wh2.t()
     w1, h1 = wh1[0], wh1[1]
     w2, h2 = wh2[0], wh2[1]
