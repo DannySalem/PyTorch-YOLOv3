@@ -2,7 +2,7 @@ from __future__ import division
 
 from models import Darknet
 from utils.logger import Logger
-from utils.utils import load_classes, weights_init_normal
+from utils.utils import load_classes, weights_init_normal, printBBoxes
 from utils.datasets import ListDataset
 from utils.parse_config import parse_data_config
 from test import evaluate
@@ -106,7 +106,7 @@ if __name__ == "__main__":
     for epoch in range(opt.epochs):
         model.train()
         start_time = time.time()
-        for batch_i, (_, imgs, targets) in enumerate(dataloader):
+        for batch_i, (paths, imgs, targets) in enumerate(dataloader):
             batches_done = len(dataloader) * epoch + batch_i
             imgs = Variable(imgs.to(device))
             targets = Variable(targets.to(device), requires_grad=False)
