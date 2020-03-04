@@ -56,7 +56,7 @@ class ImageFolder(Dataset):
 
 
 class ListDataset(Dataset):
-    def __init__(self, list_path, img_size=416, augment=True, multiscale=True, normalized_labels=True, visdrone=True):
+    def __init__(self, list_path, img_size=416, augment=True, multiscale=True, normalized_labels=True, visdrone=False):
         with open(list_path, "r") as file:
             self.img_files = file.readlines()
 
@@ -106,15 +106,16 @@ class ListDataset(Dataset):
 
         targets = None
         if os.path.exists(label_path):
-            if self.visdrone:
-                boxes = torch.from_numpy(np.loadtxt(label_path, usecols=(0, 1, 2, 3, 5), delimiter=',').reshape(-1, 5))
-                boxes[:, [4, 0]] = boxes[:, [0, 4]]
-                boxes[:, 1] = (boxes[:, 1] + (boxes[:, 3] / 2)) / original_width
-                boxes[:, 2] = (boxes[:, 2] + (boxes[:, 4] / 2)) / original_height
-                boxes[:, 3] = boxes[:, 3] / original_width
-                boxes[:, 4] = boxes[:, 4] / original_height
-            else:
-                boxes = torch.from_numpy(np.loadtxt(label_path).reshape(-1, 5))
+
+            # if self.visdrone:
+            #     boxes = torch.from_numpy(np.loadtxt(label_path, usecols=(0, 1, 2, 3, 5), delimiter=',').reshape(-1, 5))
+            #     boxes[:, [4, 0]] = boxes[:, [0, 4]]
+            #     boxes[:, 1] = (boxes[:, 1] + (boxes[:, 3] / 2)) / original_width
+            #     boxes[:, 2] = (boxes[:, 2] + (boxes[:, 4] / 2)) / original_height
+            #     boxes[:, 3] = boxes[:, 3] / original_width
+            #     boxes[:, 4] = boxes[:, 4] / original_height
+            # else:
+            boxes = torch.from_numpy(np.loadtxt(label_path).reshape(-1, 5))
 
             # Extract coordinates for unpadded + unscaled image
             x1 = w_factor * (boxes[:, 1] - boxes[:, 3] / 2)
