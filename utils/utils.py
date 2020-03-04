@@ -338,7 +338,7 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     return iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf
 
 
-def printBBoxes(path, detections, classes, img_size=416):
+def printBBoxes(path, detections, classes, img_size=416, rescale=True):
     '''
     Given a detection and an image path, return a figure of bounding boxes
 
@@ -355,8 +355,8 @@ def printBBoxes(path, detections, classes, img_size=416):
     ax.imshow(img)
     # Draw bounding boxes and labels of detections
     if detections is not None:
-        # Rescale boxes to original image
-        detections = rescale_boxes(detections, img_size, img.shape[:2])
+        # Rescale boxes to original image's resolution (if needed)
+        detections = rescale_boxes(detections, img_size, img.shape[:2]) if rescale else detections
         unique_labels = detections[:, -1].cpu().unique()
         n_cls_preds = len(unique_labels)
         bbox_colors = random.sample(colors, n_cls_preds)
@@ -386,7 +386,6 @@ def printBBoxes(path, detections, classes, img_size=416):
     plt.axis("off")
     plt.gca().xaxis.set_major_locator(NullLocator())
     plt.gca().yaxis.set_major_locator(NullLocator())
-    import pdb; pdb.set_trace()
     filename = path.split("/")[-1].split(".")[0]
     plt.savefig(f"output/{filename}.png", bbox_inches="tight", pad_inches=0.0)
     plt.close()

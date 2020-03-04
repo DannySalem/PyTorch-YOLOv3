@@ -107,7 +107,6 @@ class ListDataset(Dataset):
         targets = None
         if os.path.exists(label_path):
             if self.visdrone:
-
                 boxes = torch.from_numpy(np.loadtxt(label_path, usecols=(0, 1, 2, 3, 5), delimiter=',').reshape(-1, 5))
                 boxes[:, [4, 0]] = boxes[:, [0, 4]]
                 boxes[:, 1] = (boxes[:, 1] + (boxes[:, 3] / 2)) / original_width
@@ -133,7 +132,6 @@ class ListDataset(Dataset):
             boxes[:, 2] = ((y1 + y2) / 2) / padded_h
             boxes[:, 3] *= w_factor / padded_w
             boxes[:, 4] *= h_factor / padded_h
-
             targets = torch.zeros((len(boxes), 6))
             targets[:, 1:] = boxes
 
@@ -141,9 +139,9 @@ class ListDataset(Dataset):
         if self.augment:
             if np.random.random() < 0.5:
                 img, targets = horisontal_flip(img, targets)
-
         return img_path, img, targets
 
+    # Custom Batching function. Dataset can't output a batch if images are different resolution
     def collate_fn(self, batch):
         paths, imgs, targets = list(zip(*batch))
         # Remove empty placeholder targets
@@ -159,6 +157,41 @@ class ListDataset(Dataset):
         imgs = torch.stack([resize(img, self.img_size) for img in imgs])
         self.batch_count += 1
         return paths, imgs, targets
+
+    def __len__(self):
+        return len(self.img_files)
+
+
+class TestDataset(Dataset):
+    def __init__(self, list_path):
+        with open(list_path, "r") as file:
+            self.img_files = file.readlines()
+
+        self.label_files = [
+            path.replace("images", "labels").replace(".png", ".txt").replace(".jpg", ".txt")
+            for path in self.img_files
+        ]
+        self.batch_count = 0
+
+    def __getitem__(self, index):
+
+        img_path = self.img_files[index % len(self.img_files)].rstrip()
+        label_path = self.label_files[index % len(self.img_files)].rstrip()
+
+        targets = None
+        if os.path.exists(label_path):
+
+            boxes = torch.from_numpy(np.loadtxt(label_path, usecols=(0, 1, 2, 3, 5), delimiter=',').reshape(-1, 5))
+            w = boxes[:, 2]
+            h = boxes[:, 3]
+            boxes[:, 2] = boxes[:, 0] + w
+            boxes[:, 3] = boxes[:, 1] + h
+            targets = torch.zeros((len(boxes), 7))
+            targets[:, 0:4] = boxes[:, 0:4]
+            targets[:, 6] = boxes[:, 4]
+            targets[:, 4] = torch.ones(1, (len(boxes)))
+            targets[:, 5] = torch.ones(1, (len(boxes)))
+        return img_path, targets
 
     def __len__(self):
         return len(self.img_files)
