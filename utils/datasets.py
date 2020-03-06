@@ -128,6 +128,7 @@ class ListDataset(Dataset):
             y1 += pad[2]
             x2 += pad[1]
             y2 += pad[3]
+
             # Returns (x, y, w, h)
             boxes[:, 1] = ((x1 + x2) / 2) / padded_w
             boxes[:, 2] = ((y1 + y2) / 2) / padded_h
@@ -140,6 +141,7 @@ class ListDataset(Dataset):
         if self.augment:
             if np.random.random() < 0.5:
                 img, targets = horisontal_flip(img, targets)
+
         return img_path, img, targets
 
     # Custom Batching function. Dataset can't output a batch if images are different resolution

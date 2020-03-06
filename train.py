@@ -2,7 +2,7 @@ from __future__ import division
 
 from models import Darknet
 from utils.logger import Logger
-from utils.utils import load_classes, weights_init_normal, printBBoxes
+from utils.utils import load_classes, weights_init_normal, printBBoxes, printGTBBoxes
 from utils.datasets import ListDataset
 from utils.parse_config import parse_data_config
 from test import evaluate
@@ -37,7 +37,7 @@ if __name__ == "__main__":
     # Hacky overide of defaults
     opt.model_def = 'config/yolov3visdrone.cfg'
     opt.data_config = 'config/visdrone.data'
-    opt.visdrone = True
+    opt.batch_size = 1
 
     print(opt)
 
@@ -72,9 +72,9 @@ if __name__ == "__main__":
     # Get dataloader
     dataset = ListDataset(
         train_path,
-        augment=True,
-        multiscale=opt.multiscale_training,
-        visdrone=opt.visdrone)
+        augment=False,
+        multiscale=opt.multiscale_training
+    )
     dataloader = torch.utils.data.DataLoader(
         dataset,
         batch_size=opt.batch_size,
@@ -107,6 +107,9 @@ if __name__ == "__main__":
         model.train()
         start_time = time.time()
         for batch_i, (paths, imgs, targets) in enumerate(dataloader):
+
+            printGTBBoxes(paths[0], targets, class_names, imgs, img_size=imgs.shape[3])
+
             batches_done = len(dataloader) * epoch + batch_i
             imgs = Variable(imgs.to(device))
             targets = Variable(targets.to(device), requires_grad=False)

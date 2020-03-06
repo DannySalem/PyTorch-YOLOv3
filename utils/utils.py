@@ -249,7 +249,7 @@ def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
     """
 
     # From (center x, center y, width, height) to (x1, y1, x2, y2)
-    prediction[..., :4] = xywh2xyxy(prediction[..., :4])
+    #prediction[..., :4] = xywh2xyxy(prediction[..., :4])
     output = [None for _ in range(len(prediction))]
     for image_i, image_pred in enumerate(prediction):
         # Filter out confidence scores below threshold
@@ -266,7 +266,7 @@ def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
         # Perform non-maximum suppression
         keep_boxes = []
         while detections.size(0):
-            large_overlap = bbox_iou(detections[0, :4].unsqueeze(0), detections[:, :4]) > nms_thres
+            large_overlap = bbox_iou(detections[0, :4].unsqueeze(0), detections[:, :4], x1y1x2y2=False) > nms_thres
             label_match = detections[0, -1] == detections[:, -1]
             # Indices of boxes with lower confidence scores, large IOUs and matching labels
             invalid = large_overlap & label_match
@@ -338,7 +338,7 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     return iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf
 
 
-def printBBoxes(path, detections, classes, img_size=416, rescale=True):
+def printBBoxes(path, detections, classes, img_size=416, rescale=True, pad_img=None):
     '''
     Given a detection and an image path, return a figure of bounding boxes
 
@@ -356,6 +356,7 @@ def printBBoxes(path, detections, classes, img_size=416, rescale=True):
     # Draw bounding boxes and labels of detections
     if detections is not None:
         # Rescale boxes to original image's resolution (if needed)
+        detections[..., :4] = xywh2xyxy(detections[..., :4])
         detections = rescale_boxes(detections, img_size, img.shape[:2]) if rescale else detections
         unique_labels = detections[:, -1].cpu().unique()
         n_cls_preds = len(unique_labels)
@@ -373,14 +374,14 @@ def printBBoxes(path, detections, classes, img_size=416, rescale=True):
             # Add the bbox to the plot
             ax.add_patch(bbox)
             # Add label
-            plt.text(
-                x1,
-                y1,
-                s=classes[int(cls_pred)],
-                color="white",
-                verticalalignment="top",
-                bbox={"color": color, "pad": 0},
-            )
+            #plt.text(
+            #    x1,
+            #    y1,
+            #    s=classes[int(cls_pred)],
+            #    color="white",
+            #    verticalalignment="top",
+            #    bbox={"color": color, "pad": 0},
+            #)
 
     # Save generated image with detections
     plt.axis("off")
@@ -389,3 +390,19 @@ def printBBoxes(path, detections, classes, img_size=416, rescale=True):
     filename = path.split("/")[-1].split(".")[0]
     plt.savefig(f"output/{filename}.png", bbox_inches="tight", pad_inches=0.0)
     plt.close()
+
+
+def printGTBBoxes(paths, boxes, classes, imgs, img_size=416):
+    w = img_size
+    h = img_size
+    boxes[:, 4] = boxes[:, 4] * w
+    boxes[:, 5] = boxes[:, 5] * h
+    boxes[:, 2] = boxes[:, 2] * w
+    boxes[:, 3] = boxes[:, 3] * h
+    targets = torch.zeros((len(boxes), 7))
+    targets[:, 0:4] = boxes[:, 2:]
+    targets[:, 6] = boxes[:, 1]
+    targets[:, 4] = torch.ones(1, (len(boxes)))
+    targets[:, 5] = torch.ones(1, (len(boxes)))
+    img = imgs[0,:,:,:].transpose(0,2).transpose(0,1)
+    printBBoxes(paths, targets, classes, img_size=img_size, pad_img=img)
