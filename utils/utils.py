@@ -392,17 +392,21 @@ def printBBoxes(path, detections, classes, img_size=416, rescale=True, pad_img=N
     plt.close()
 
 
-def printGTBBoxes(paths, boxes, classes, imgs, img_size=416):
+def printGTBBoxes(paths, batch_boxes, classes, imgs, img_size=416):
     w = img_size
     h = img_size
-    boxes[:, 4] = boxes[:, 4] * w
-    boxes[:, 5] = boxes[:, 5] * h
-    boxes[:, 2] = boxes[:, 2] * w
-    boxes[:, 3] = boxes[:, 3] * h
-    targets = torch.zeros((len(boxes), 7))
-    targets[:, 0:4] = boxes[:, 2:]
-    targets[:, 6] = boxes[:, 1]
-    targets[:, 4] = torch.ones(1, (len(boxes)))
-    targets[:, 5] = torch.ones(1, (len(boxes)))
-    img = imgs[0,:,:,:].transpose(0,2).transpose(0,1)
-    printBBoxes(paths, targets, classes, img_size=img_size, pad_img=img)
+    num_images = imgs.shape[0] if len(imgs.shape) > 3 else 1
+    for idx in range(num_images):
+        boxes = torch.stack([box for box in batch_boxes if box[0] == idx])
+        boxes[:, 4] = boxes[:, 4] * w
+        boxes[:, 5] = boxes[:, 5] * h
+        boxes[:, 2] = boxes[:, 2] * w
+        boxes[:, 3] = boxes[:, 3] * h
+        targets = torch.zeros((len(boxes), 7))
+        targets[:, 0:4] = boxes[:, 2:]
+        targets[:, 6] = boxes[:, 1]
+        targets[:, 4] = torch.ones(1, (len(boxes)))
+        targets[:, 5] = torch.ones(1, (len(boxes)))
+        img = imgs[idx, :, :, :].transpose(0, 2).transpose(0, 1)
+        path = paths[idx]
+        printBBoxes(path, targets, classes, img_size=img_size, pad_img=img)

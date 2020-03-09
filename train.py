@@ -37,7 +37,6 @@ if __name__ == "__main__":
     # Hacky overide of defaults
     opt.model_def = 'config/yolov3visdrone.cfg'
     opt.data_config = 'config/visdrone.data'
-    opt.batch_size = 1
 
     print(opt)
 
@@ -108,7 +107,7 @@ if __name__ == "__main__":
         start_time = time.time()
         for batch_i, (paths, imgs, targets) in enumerate(dataloader):
 
-            printGTBBoxes(paths[0], targets, class_names, imgs, img_size=imgs.shape[3])
+            #printGTBBoxes(paths, targets, class_names, imgs, img_size=imgs.shape[3])
 
             batches_done = len(dataloader) * epoch + batch_i
             imgs = Variable(imgs.to(device))
