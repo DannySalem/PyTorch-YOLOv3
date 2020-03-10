@@ -338,7 +338,7 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     return iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf
 
 
-def printBBoxes(path, detections, classes, img_size=416, rescale=True, pad_img=None):
+def printBBoxes(path, detections, classes, img_size=416, rescale=True):
     '''
     Given a detection and an image path, return a figure of bounding boxes
 
@@ -409,4 +409,4 @@ def printGTBBoxes(paths, batch_boxes, classes, imgs, img_size=416):
         targets[:, 5] = torch.ones(1, (len(boxes)))
         img = imgs[idx, :, :, :].transpose(0, 2).transpose(0, 1)
         path = paths[idx]
-        printBBoxes(path, targets, classes, img_size=img_size, pad_img=img)
+        printBBoxes(path, targets, classes, img_size=img_size)

@@ -56,7 +56,7 @@ class ImageFolder(Dataset):
 
 
 class ListDataset(Dataset):
-    def __init__(self, list_path, img_size=416, augment=True, multiscale=True, normalized_labels=True, visdrone=False):
+    def __init__(self, list_path, img_size=416, augment=True, multiscale=True, normalized_labels=True):
         with open(list_path, "r") as file:
             self.img_files = file.readlines()
 
@@ -72,7 +72,11 @@ class ListDataset(Dataset):
         self.min_size = self.img_size - 3 * 32
         self.max_size = self.img_size + 3 * 32
         self.batch_count = 0
-        self.visdrone = True
+        #self.to_pad = True
+        #self.to_crop = False
+        self.to_pad = False
+        self.to_crop = True
+        self.crop_size = 500
 
     def __getitem__(self, index):
 
@@ -84,20 +88,31 @@ class ListDataset(Dataset):
 
         # Extract image as PyTorch tensor
         img = transforms.ToTensor()(Image.open(img_path).convert('RGB'))
-        original_height = img.shape[1]
-        original_width = img.shape[2]
 
         # Handle images with less than three channels
         if len(img.shape) != 3:
             img = img.unsqueeze(0)
             img = img.expand((3, img.shape[1:]))
 
-        _, h, w = img.shape
-        h_factor, w_factor = (h, w) if self.normalized_labels else (1, 1)
         # Pad to square resolution
-        img, pad = pad_to_square(img, 0)
-        _, padded_h, padded_w = img.shape
+        if self.to_pad:
+            _, h, w = img.shape
+            h_factor, w_factor = (h, w) if self.normalized_labels else (1, 1)
+            img, pad = pad_to_square(img, 0)
+            _, padded_h, padded_w = img.shape
 
+
+        # Get Crop Bounds
+        if self.to_crop:
+            _, h, w = img.shape
+            topleft_x = random.randint(0, w-self.crop_size-1)
+            topleft_y = random.randint(0, h-self.crop_size-1)
+            #w_offset = (w - self.crop_size) / 2
+            top_bound = topleft_y
+            bottom_bound = top_bound + self.crop_size
+            left_bound = topleft_x
+            right_bound = left_bound + self.crop_size
+            cropped_img = img[:,top_bound:bottom_bound, left_bound:right_bound]
         # ---------
         #  Label
         # ---------
@@ -107,35 +122,50 @@ class ListDataset(Dataset):
         targets = None
         if os.path.exists(label_path):
 
-            # if self.visdrone:
-            #     boxes = torch.from_numpy(np.loadtxt(label_path, usecols=(0, 1, 2, 3, 5), delimiter=',').reshape(-1, 5))
-            #     boxes[:, [4, 0]] = boxes[:, [0, 4]]
-            #     boxes[:, 1] = (boxes[:, 1] + (boxes[:, 3] / 2)) / original_width
-            #     boxes[:, 2] = (boxes[:, 2] + (boxes[:, 4] / 2)) / original_height
-            #     boxes[:, 3] = boxes[:, 3] / original_width
-            #     boxes[:, 4] = boxes[:, 4] / original_height
-            # else:
             boxes = torch.from_numpy(np.loadtxt(label_path).reshape(-1, 5))
+            targets = []
 
-            # Extract coordinates for unpadded + unscaled image
-            x1 = w_factor * (boxes[:, 1] - boxes[:, 3] / 2)
-            y1 = h_factor * (boxes[:, 2] - boxes[:, 4] / 2)
-            x2 = w_factor * (boxes[:, 1] + boxes[:, 3] / 2)
-            y2 = h_factor * (boxes[:, 2] + boxes[:, 4] / 2)
+            if self.to_crop:
+                for box in boxes:
+                    x1 = int((box[1] - box[3] / 2) * w)
+                    y1 = int((box[2] - box[4] / 2) * h)
+                    x2 = int((box[1] + box[3] / 2) * w)
+                    y2 = int((box[2] + box[4] / 2) * h)
+                    if x1 > left_bound and x2 < right_bound and y1 > top_bound and y2 < bottom_bound:
+                        # Re-normalize to cropped image
+                        x1 = abs(x1 - (left_bound)) / self.crop_size
+                        x2 = abs(x2 - (left_bound)) / self.crop_size
+                        y1 = abs(y1 - (top_bound)) / self.crop_size
+                        y2 = abs(y2 - (top_bound)) / self.crop_size
+                        # Make output
+                        box_out = torch.zeros(6)
+                        box_out[1] = box[0]
+                        box_out[2] = (x1 + x2) / 2
+                        box_out[3] = (y1 + y2) / 2
+                        box_out[4] = x2 - x1
+                        box_out[5] = y2 - y1
+                        targets += [box_out]
+                targets = torch.stack(targets) if len(targets) > 0 else None
+                img = cropped_img
 
-            # Adjust for added padding
-            x1 += pad[0]
-            y1 += pad[2]
-            x2 += pad[1]
-            y2 += pad[3]
-
-            # Returns (x, y, w, h)
-            boxes[:, 1] = ((x1 + x2) / 2) / padded_w
-            boxes[:, 2] = ((y1 + y2) / 2) / padded_h
-            boxes[:, 3] *= w_factor / padded_w
-            boxes[:, 4] *= h_factor / padded_h
-            targets = torch.zeros((len(boxes), 6))
-            targets[:, 1:] = boxes
+            if self.to_pad:
+                targets = torch.zeros((len(boxes), 6))
+                # Extract coordinates for unpadded + unscaled image
+                x1 = w_factor * (boxes[:, 1] - boxes[:, 3] / 2)
+                y1 = h_factor * (boxes[:, 2] - boxes[:, 4] / 2)
+                x2 = w_factor * (boxes[:, 1] + boxes[:, 3] / 2)
+                y2 = h_factor * (boxes[:, 2] + boxes[:, 4] / 2)
+                # Adjust for added padding
+                x1 += pad[0]
+                y1 += pad[2]
+                x2 += pad[1]
+                y2 += pad[3]
+                # Returns (x, y, w, h)
+                boxes[:, 1] = ((x1 + x2) / 2) / padded_w
+                boxes[:, 2] = ((y1 + y2) / 2) / padded_h
+                boxes[:, 3] *= w_factor / padded_w
+                boxes[:, 4] *= h_factor / padded_h
+                targets[:, 1:] = boxes
 
         # Apply augmentations
         if self.augment:

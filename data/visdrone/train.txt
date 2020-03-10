@@ -6356,7 +6356,6 @@ C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00640_d_0000291.jp
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00642_d_0000292.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00644_d_0000293.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00646_d_0000294.jpg
-C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00650_d_0000295.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00651_d_0000296.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00653_d_0000297.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00655_d_0000298.jpg
@@ -12827,7 +12826,6 @@ C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00640_d_0000291.jp
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00642_d_0000292.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00644_d_0000293.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00646_d_0000294.jpg
-C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00650_d_0000295.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00651_d_0000296.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00653_d_0000297.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00655_d_0000298.jpg
@@ -19298,7 +19296,6 @@ C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00640_d_0000291.jp
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00642_d_0000292.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00644_d_0000293.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00646_d_0000294.jpg
-C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00650_d_0000295.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00651_d_0000296.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00653_d_0000297.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00655_d_0000298.jpg

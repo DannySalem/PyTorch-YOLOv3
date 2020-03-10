@@ -40,7 +40,7 @@ if __name__ == "__main__":
 
     print(opt)
 
-    logger = Logger("logs/exp1")
+    logger = Logger("logs/exp" + str(len(os.listdir('./logs')) + 1))
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

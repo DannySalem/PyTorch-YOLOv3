@@ -6356,7 +6356,6 @@
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00642_d_0000292.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00644_d_0000293.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00646_d_0000294.jpg
-/data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00650_d_0000295.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00651_d_0000296.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00653_d_0000297.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00655_d_0000298.jpg
@@ -12827,7 +12826,6 @@
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00642_d_0000292.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00644_d_0000293.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00646_d_0000294.jpg
-/data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00650_d_0000295.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00651_d_0000296.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00653_d_0000297.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00655_d_0000298.jpg
@@ -19298,7 +19296,6 @@
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00642_d_0000292.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00644_d_0000293.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00646_d_0000294.jpg
-/data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00650_d_0000295.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00651_d_0000296.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00653_d_0000297.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/train/9999999_00655_d_0000298.jpg
