@@ -37,6 +37,7 @@ if __name__ == "__main__":
     # Hacky overide of defaults
     opt.model_def = 'config/yolov3visdrone.cfg'
     opt.data_config = 'config/visdrone.data'
+    opt.multiscale_training = False
 
     print(opt)
 

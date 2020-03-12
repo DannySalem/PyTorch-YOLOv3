@@ -76,7 +76,7 @@ class ListDataset(Dataset):
         #self.to_crop = False
         self.to_pad = False
         self.to_crop = True
-        self.crop_size = 500
+        self.crop_size = 416
 
     def __getitem__(self, index):
 
@@ -182,7 +182,7 @@ class ListDataset(Dataset):
         # Add sample index to targets
         for i, boxes in enumerate(targets):
             boxes[:, 0] = i
-        targets = torch.cat(targets, 0)
+        targets = torch.cat(targets, 0) # Fix this. Have to deal with no targets in any of the crops in a batch
         # Selects new image size every tenth batch
         if self.multiscale and self.batch_count % 10 == 0:
             self.img_size = random.choice(range(self.min_size, self.max_size + 1, 32))
