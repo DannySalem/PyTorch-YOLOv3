@@ -85,6 +85,9 @@ class ListDataset(Dataset):
         # ---------
 
         img_path = self.img_files[index % len(self.img_files)].rstrip()
+        label_path = self.label_files[index % len(self.img_files)].rstrip()
+        boxes = torch.from_numpy(np.loadtxt(label_path).reshape(-1, 5))
+        targets = []
 
         # Extract image as PyTorch tensor
         img = transforms.ToTensor()(Image.open(img_path).convert('RGB'))
@@ -94,61 +97,56 @@ class ListDataset(Dataset):
             img = img.unsqueeze(0)
             img = img.expand((3, img.shape[1:]))
 
-        # Pad to square resolution
-        if self.to_pad:
-            _, h, w = img.shape
-            h_factor, w_factor = (h, w) if self.normalized_labels else (1, 1)
-            img, pad = pad_to_square(img, 0)
-            _, padded_h, padded_w = img.shape
-
-
-        # Get Crop Bounds
-        if self.to_crop:
-            _, h, w = img.shape
-            topleft_x = random.randint(0, w-self.crop_size-1)
-            topleft_y = random.randint(0, h-self.crop_size-1)
-            #w_offset = (w - self.crop_size) / 2
-            top_bound = topleft_y
-            bottom_bound = top_bound + self.crop_size
-            left_bound = topleft_x
-            right_bound = left_bound + self.crop_size
-            cropped_img = img[:,top_bound:bottom_bound, left_bound:right_bound]
-        # ---------
-        #  Label
-        # ---------
-
-        label_path = self.label_files[index % len(self.img_files)].rstrip()
-
-        targets = None
         if os.path.exists(label_path):
-
-            boxes = torch.from_numpy(np.loadtxt(label_path).reshape(-1, 5))
-            targets = []
-
             if self.to_crop:
-                for box in boxes:
-                    x1 = int((box[1] - box[3] / 2) * w)
-                    y1 = int((box[2] - box[4] / 2) * h)
-                    x2 = int((box[1] + box[3] / 2) * w)
-                    y2 = int((box[2] + box[4] / 2) * h)
-                    if x1 > left_bound and x2 < right_bound and y1 > top_bound and y2 < bottom_bound:
-                        # Re-normalize to cropped image
-                        x1 = abs(x1 - (left_bound)) / self.crop_size
-                        x2 = abs(x2 - (left_bound)) / self.crop_size
-                        y1 = abs(y1 - (top_bound)) / self.crop_size
-                        y2 = abs(y2 - (top_bound)) / self.crop_size
-                        # Make output
-                        box_out = torch.zeros(6)
-                        box_out[1] = box[0]
-                        box_out[2] = (x1 + x2) / 2
-                        box_out[3] = (y1 + y2) / 2
-                        box_out[4] = x2 - x1
-                        box_out[5] = y2 - y1
-                        targets += [box_out]
-                targets = torch.stack(targets) if len(targets) > 0 else None
+                # Make sure There is a target in every crop
+                while len(targets) == 0:
+                    # Get Crop Bounds
+                    _, h, w = img.shape
+                    topleft_x = random.randint(0, w-self.crop_size-1)
+                    topleft_y = random.randint(0, h-self.crop_size-1)
+                    # w_offset = (w - self.crop_size) / 2
+                    top_bound = topleft_y
+                    bottom_bound = top_bound + self.crop_size
+                    left_bound = topleft_x
+                    right_bound = left_bound + self.crop_size
+                    cropped_img = img[:, top_bound:bottom_bound, left_bound:right_bound]
+
+                    # ---------
+                    #  Transform Labels
+                    # ---------
+                    for box in boxes:
+                        x1 = int((box[1] - box[3] / 2) * w)
+                        y1 = int((box[2] - box[4] / 2) * h)
+                        x2 = int((box[1] + box[3] / 2) * w)
+                        y2 = int((box[2] + box[4] / 2) * h)
+                        if x1 > left_bound and x2 < right_bound and y1 > top_bound and y2 < bottom_bound:
+                            # Re-normalize to cropped image
+                            x1 = abs(x1 - (left_bound)) / self.crop_size
+                            x2 = abs(x2 - (left_bound)) / self.crop_size
+                            y1 = abs(y1 - (top_bound)) / self.crop_size
+                            y2 = abs(y2 - (top_bound)) / self.crop_size
+                            # Make output
+                            box_out = torch.zeros(6)
+                            box_out[1] = box[0]
+                            box_out[2] = (x1 + x2) / 2
+                            box_out[3] = (y1 + y2) / 2
+                            box_out[4] = x2 - x1
+                            box_out[5] = y2 - y1
+                            targets += [box_out]
+                    targets = torch.stack(targets) if len(targets) > 0 else []
                 img = cropped_img
 
             if self.to_pad:
+                # Pad to square resolution
+                _, h, w = img.shape
+                h_factor, w_factor = (h, w) if self.normalized_labels else (1, 1)
+                img, pad = pad_to_square(img, 0)
+                _, padded_h, padded_w = img.shape
+
+            # ---------
+            #  Transform Labels
+            # ---------
                 targets = torch.zeros((len(boxes), 6))
                 # Extract coordinates for unpadded + unscaled image
                 x1 = w_factor * (boxes[:, 1] - boxes[:, 3] / 2)
