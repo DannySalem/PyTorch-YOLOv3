@@ -107,7 +107,6 @@ if __name__ == "__main__":
         model.train()
         start_time = time.time()
         for batch_i, (paths, imgs, targets) in enumerate(dataloader):
-
             #printGTBBoxes(paths, targets, class_names, imgs, img_size=imgs.shape[3])
 
             batches_done = len(dataloader) * epoch + batch_i

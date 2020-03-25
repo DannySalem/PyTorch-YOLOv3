@@ -59,7 +59,6 @@ C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_03349_d_0000031.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_03738_d_0000032.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_04122_d_0000033.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_04513_d_0000034.jpg
-C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_04948_d_0000035.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000115_00315_d_0000080.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000115_00796_d_0000081.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000115_01031_d_0000082.jpg
@@ -607,7 +606,6 @@ C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_03349_d_0000031.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_03738_d_0000032.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_04122_d_0000033.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_04513_d_0000034.jpg
-C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_04948_d_0000035.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000115_00315_d_0000080.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000115_00796_d_0000081.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000115_01031_d_0000082.jpg
@@ -1155,7 +1153,6 @@ C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_03349_d_0000031.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_03738_d_0000032.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_04122_d_0000033.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_04513_d_0000034.jpg
-C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000103_04948_d_0000035.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000115_00315_d_0000080.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000115_00796_d_0000081.jpg
 C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val/0000115_01031_d_0000082.jpg
