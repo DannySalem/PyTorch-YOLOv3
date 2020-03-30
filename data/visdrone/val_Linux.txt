@@ -52,7 +52,6 @@
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000086_01954_d_0000005.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_00180_d_0000026.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_00502_d_0000027.jpg
-/data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_01734_d_0000028.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_02544_d_0000029.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_02964_d_0000030.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_03349_d_0000031.jpg
@@ -599,7 +598,6 @@
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000086_01954_d_0000005.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_00180_d_0000026.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_00502_d_0000027.jpg
-/data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_01734_d_0000028.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_02544_d_0000029.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_02964_d_0000030.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_03349_d_0000031.jpg
@@ -1146,7 +1144,6 @@
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000086_01954_d_0000005.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_00180_d_0000026.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_00502_d_0000027.jpg
-/data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_01734_d_0000028.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_02544_d_0000029.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_02964_d_0000030.jpg
 /data/salemd/PyTorch-YOLOv3/data/visdrone/images/val/0000103_03349_d_0000031.jpg
