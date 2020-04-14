@@ -28,6 +28,8 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
     sample_metrics = []  # List of tuples (TP, confs, pred)
     for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
         # Extract labels
+        if targets is None:
+            continue
         labels += targets[:, 1].tolist()
         # Rescale target to x1y1x2y2. YOLO outputs in XYWH and it gets converted in the IOU script later
         targets[:, 2:] = xywh2xyxy(targets[:, 2:])
