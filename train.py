@@ -32,6 +32,8 @@ if __name__ == "__main__":
     parser.add_argument("--evaluation_interval", type=int, default=1, help="interval evaluations on validation set")
     parser.add_argument("--compute_map", default=False, help="if True computes mAP every tenth batch")
     parser.add_argument("--multiscale_training", default=True, help="allow for multi-scale training")
+    parser.add_argument("--to_crop", default=True, help="Reduce Image Size by Cropping")
+    parser.add_argument("--to_pad", default=False, help="Reduce Image Size by Padding")
     opt = parser.parse_args()
 
     # Hacky overide of defaults
@@ -108,7 +110,9 @@ if __name__ == "__main__":
         start_time = time.time()
         for batch_i, (paths, imgs, targets) in enumerate(dataloader):
             #printGTBBoxes(paths, targets, class_names, imgs, img_size=imgs.shape[3])
-
+            #break
+            if targets is None:
+                continue
             batches_done = len(dataloader) * epoch + batch_i
             imgs = Variable(imgs.to(device))
             targets = Variable(targets.to(device), requires_grad=False)
