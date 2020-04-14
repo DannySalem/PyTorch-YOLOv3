@@ -56,7 +56,7 @@ class ImageFolder(Dataset):
 
 
 class ListDataset(Dataset):
-    def __init__(self, list_path, img_size=416, augment=True, multiscale=True, normalized_labels=True):
+    def __init__(self, list_path, img_size=416, augment=True, multiscale=True, normalized_labels=True, to_crop=True, to_pad=False):
         with open(list_path, "r") as file:
             self.img_files = file.readlines()
 
@@ -72,10 +72,8 @@ class ListDataset(Dataset):
         self.min_size = self.img_size - 3 * 32
         self.max_size = self.img_size + 3 * 32
         self.batch_count = 0
-        #self.to_pad = True
-        #self.to_crop = False
-        self.to_pad = False
-        self.to_crop = True
+        self.to_pad = to_pad
+        self.to_crop = to_crop
         self.crop_size = 416
 
     def __getitem__(self, index):
@@ -100,41 +98,41 @@ class ListDataset(Dataset):
         if os.path.exists(label_path):
             if self.to_crop:
                 # Make sure There is a target in every crop
-                while len(targets) == 0:
-                    # Get Crop Bounds
-                    _, h, w = img.shape
-                    topleft_x = random.randint(0, w-self.crop_size-1)
-                    topleft_y = random.randint(0, h-self.crop_size-1)
-                    # w_offset = (w - self.crop_size) / 2
-                    top_bound = topleft_y
-                    bottom_bound = top_bound + self.crop_size
-                    left_bound = topleft_x
-                    right_bound = left_bound + self.crop_size
-                    cropped_img = img[:, top_bound:bottom_bound, left_bound:right_bound]
+                #while len(targets) == 0:
+                # Get Crop Bounds
+                _, h, w = img.shape
+                topleft_x = random.randint(0, w-self.crop_size-1)
+                topleft_y = random.randint(0, h-self.crop_size-1)
+                # w_offset = (w - self.crop_size) / 2
+                top_bound = topleft_y
+                bottom_bound = top_bound + self.crop_size
+                left_bound = topleft_x
+                right_bound = left_bound + self.crop_size
+                cropped_img = img[:, top_bound:bottom_bound, left_bound:right_bound]
 
-                    # ---------
-                    #  Transform Labels
-                    # ---------
-                    for box in boxes:
-                        x1 = int((box[1] - box[3] / 2) * w)
-                        y1 = int((box[2] - box[4] / 2) * h)
-                        x2 = int((box[1] + box[3] / 2) * w)
-                        y2 = int((box[2] + box[4] / 2) * h)
-                        if x1 > left_bound and x2 < right_bound and y1 > top_bound and y2 < bottom_bound:
-                            # Re-normalize to cropped image
-                            x1 = abs(x1 - (left_bound)) / self.crop_size
-                            x2 = abs(x2 - (left_bound)) / self.crop_size
-                            y1 = abs(y1 - (top_bound)) / self.crop_size
-                            y2 = abs(y2 - (top_bound)) / self.crop_size
-                            # Make output
-                            box_out = torch.zeros(6)
-                            box_out[1] = box[0]
-                            box_out[2] = (x1 + x2) / 2
-                            box_out[3] = (y1 + y2) / 2
-                            box_out[4] = x2 - x1
-                            box_out[5] = y2 - y1
-                            targets += [box_out]
-                    targets = torch.stack(targets) if len(targets) > 0 else []
+                # ---------
+                #  Transform Labels
+                # ---------
+                for box in boxes:
+                    x1 = int((box[1] - box[3] / 2) * w)
+                    y1 = int((box[2] - box[4] / 2) * h)
+                    x2 = int((box[1] + box[3] / 2) * w)
+                    y2 = int((box[2] + box[4] / 2) * h)
+                    if x1 > left_bound and x2 < right_bound and y1 > top_bound and y2 < bottom_bound:
+                        # Re-normalize to cropped image
+                        x1 = abs(x1 - (left_bound)) / self.crop_size
+                        x2 = abs(x2 - (left_bound)) / self.crop_size
+                        y1 = abs(y1 - (top_bound)) / self.crop_size
+                        y2 = abs(y2 - (top_bound)) / self.crop_size
+                        # Make output
+                        box_out = torch.zeros(6)
+                        box_out[1] = box[0]
+                        box_out[2] = (x1 + x2) / 2
+                        box_out[3] = (y1 + y2) / 2
+                        box_out[4] = x2 - x1
+                        box_out[5] = y2 - y1
+                        targets += [box_out]
+                targets = torch.stack(targets) if len(targets) > 0 else None
                 img = cropped_img
 
             if self.to_pad:
@@ -180,7 +178,10 @@ class ListDataset(Dataset):
         # Add sample index to targets
         for i, boxes in enumerate(targets):
             boxes[:, 0] = i
-        targets = torch.cat(targets, 0) # Fix this. Have to deal with no targets in any of the crops in a batch
+        try:
+            targets = torch.cat(targets, 0) # Fix this. Have to deal with no targets in any of the crops in a batch
+        except RuntimeError:  # If no targets in all 8 crops
+            return paths, imgs, None
         # Selects new image size every tenth batch
         if self.multiscale and self.batch_count % 10 == 0:
             self.img_size = random.choice(range(self.min_size, self.max_size + 1, 32))
