@@ -1,11 +1,29 @@
 # PyTorch-YOLOv3
 A minimal PyTorch implementation of YOLOv3, with support for training, inference and evaluation.
 
-## Installation
+## New Additions
+#### Tensorboard Logging
+Performance metric logs are now organized into categories: Loss and Performance.
+
+<p align="center"><img src="assets/tensorboard_example.png" width="480"\></p>
+
+#### Data Augmentation Via Cropping 
+Cropping is now the default Image Resizing method used. Two new arguments have been added to: --to_crop and --to_pad. To begin training on VISDRONE with cropping, one should use the following command:
+
+```
+$ python3 train.py --data_config config/visdrone.data  --pretrained_weights weights/darknet53.conv.74 --model_def config/yolov3visdrone.cfg --to_crop True
+```
+
+## Installation Instructions for Linux
+
+##### Requirements
+    Python3
+    Anaconda
+
 ##### Clone and install requirements
-    $ git clone https://github.com/eriklindernoren/PyTorch-YOLOv3
+    $ git clone https://github.com/DannySalem/PyTorch-YOLOv3
     $ cd PyTorch-YOLOv3/
-    $ sudo pip3 install -r requirements.txt
+    $ conda env create --file requirements.yml
 
 ##### Download pretrained weights
     $ cd weights/
@@ -14,6 +32,16 @@ A minimal PyTorch implementation of YOLOv3, with support for training, inference
 ##### Download COCO
     $ cd data/
     $ bash get_coco_dataset.sh
+
+##### Download VISDRONE
+    Download Validation Dataset from: https://drive.google.com/file/d/1bxK5zgLn0_L8x276eKkuYA_FzwCIjb59/view
+    Download Training Dataset from: https://drive.google.com/file/d/1a2oHjcEcwXP8oUF95qiwrqzACb2YlUhn/view
+    Place train images in /PyTorch-YOLOv3/visdrone/images/train/
+    Place validation images in /PyTorch-YOLOv3/visdrone/images/val/
+    Place train labels in /PyTorch-YOLOv3/visdrone/annotations/train/
+    Place validation labels in /PyTorch-YOLOv3/visdrone/annotations/val/
+    $ python /data/visdrone/formatVISDRONE.py
+    The folder "/PyTorch-YOLOv3/visdrone/annotations/" can be deleted or ignored
     
 ## Test
 Evaluates the model on COCO test.
@@ -55,6 +83,7 @@ $ train.py [-h] [--epochs EPOCHS] [--batch_size BATCH_SIZE]
                 [--evaluation_interval EVALUATION_INTERVAL]
                 [--compute_map COMPUTE_MAP]
                 [--multiscale_training MULTISCALE_TRAINING]
+                [--to_crop TO_CROP] [--to_pad TO_PAD]
 ```
 
 #### Example (COCO)
@@ -63,6 +92,11 @@ To train on COCO using a Darknet-53 backend pretrained on ImageNet run:
 $ python3 train.py --data_config config/coco.data  --pretrained_weights weights/darknet53.conv.74
 ```
 
+#### Example (VISDRONE)
+To train on VISDRONE using a Darknet-53 backend pretrained on ImageNet run:
+```
+$ python3 train.py --data_config config/visdrone.data  --pretrained_weights weights/darknet53.conv.74 --model_def config/yolov3visdrone.cfg --to_crop True
+```
 #### Training log
 ```
 ---- [Epoch 7/100, Batch 7300/14658] ----
