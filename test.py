@@ -26,7 +26,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 
     labels = []
     sample_metrics = []  # List of tuples (TP, confs, pred)
-    for batch_i, (_, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
+    for batch_i, (_, _, imgs, targets) in enumerate(tqdm.tqdm(dataloader, desc="Detecting objects")):
         # Extract labels
         if targets is None:
             continue
@@ -42,6 +42,7 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
             outputs = non_max_suppression(outputs, conf_thres=conf_thres, nms_thres=nms_thres)
 
         sample_metrics += get_batch_statistics(outputs, targets, iou_threshold=iou_thres)
+
     # Concatenate sample statistics
     try:
         true_positives, pred_scores, pred_labels = [np.concatenate(x, 0) for x in list(zip(*sample_metrics))]
@@ -62,10 +63,10 @@ def evaluate(model, path, iou_thres, conf_thres, nms_thres, img_size, batch_size
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch_size", type=int, default=8, help="size of each image batch")
-    parser.add_argument("--model_def", type=str, default="config/yolov3.cfg", help="path to model definition file")
-    parser.add_argument("--data_config", type=str, default="config/coco.data", help="path to data config file")
+    parser.add_argument("--model_def", type=str, default="config/yolov3visdrone.cfg", help="path to model definition file")
+    parser.add_argument("--data_config", type=str, default="config/visdrone.data", help="path to data config file")
     parser.add_argument("--weights_path", type=str, default="weights/yolov3.weights", help="path to weights file")
-    parser.add_argument("--class_path", type=str, default="data/coco.names", help="path to class label file")
+    parser.add_argument("--class_path", type=str, default="data/visdrone.names", help="path to class label file")
     parser.add_argument("--iou_thres", type=float, default=0.5, help="iou threshold required to qualify as detected")
     parser.add_argument("--conf_thres", type=float, default=0.001, help="object confidence threshold")
     parser.add_argument("--nms_thres", type=float, default=0.5, help="iou thresshold for non-maximum suppression")
@@ -74,6 +75,7 @@ if __name__ == "__main__":
     opt = parser.parse_args()
     print(opt)
 
+    # python test.py --weights_path='./checkpoints/yolov3_ckpt_99.pth'
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
     data_config = parse_data_config(opt.data_config)

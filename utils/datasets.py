@@ -37,7 +37,8 @@ def random_resize(images, min_size=288, max_size=448):
 
 class ImageFolder(Dataset):
     def __init__(self, folder_path, img_size=416):
-        self.files = sorted(glob.glob("%s/*.*" % folder_path))
+        #self.files = sorted(glob.glob("%s/*.*" % folder_path))
+        self.files = [folder_path + '/' + img_name for img_name in os.listdir(folder_path)]
         self.img_size = img_size
 
     def __getitem__(self, index):
@@ -56,7 +57,7 @@ class ImageFolder(Dataset):
 
 
 class ListDataset(Dataset):
-    def __init__(self, list_path, img_size=416, augment=True, multiscale=True, normalized_labels=True, to_crop=True, to_pad=False):
+    def __init__(self, list_path, img_size=416, augment=False, multiscale=True, normalized_labels=True, to_crop=True, to_pad=False):
         with open(list_path, "r") as file:
             self.img_files = file.readlines()
 
@@ -98,7 +99,7 @@ class ListDataset(Dataset):
         if os.path.exists(label_path):
             if self.to_crop:
                 # Make sure There is a target in every crop
-                #while len(targets) == 0:
+                # while len(targets) == 0:
                 # Get Crop Bounds
                 _, h, w = img.shape
                 topleft_x = random.randint(0, w-self.crop_size-1)
@@ -120,10 +121,10 @@ class ListDataset(Dataset):
                     y2 = int((box[2] + box[4] / 2) * h)
                     if x1 > left_bound and x2 < right_bound and y1 > top_bound and y2 < bottom_bound:
                         # Re-normalize to cropped image
-                        x1 = abs(x1 - (left_bound)) / self.crop_size
-                        x2 = abs(x2 - (left_bound)) / self.crop_size
-                        y1 = abs(y1 - (top_bound)) / self.crop_size
-                        y2 = abs(y2 - (top_bound)) / self.crop_size
+                        x1 = (x1 - (left_bound)) / self.crop_size
+                        x2 = (x2 - (left_bound)) / self.crop_size
+                        y1 = (y1 - (top_bound)) / self.crop_size
+                        y2 = (y2 - (top_bound)) / self.crop_size
                         # Make output
                         box_out = torch.zeros(6)
                         box_out[1] = box[0]
@@ -168,27 +169,31 @@ class ListDataset(Dataset):
             if np.random.random() < 0.5:
                 img, targets = horisontal_flip(img, targets)
 
-        return img_path, img, targets
+        return img_path, label_path, img, targets
 
     # Custom Batching function. Dataset can't output a batch if images are different resolution
     def collate_fn(self, batch):
-        paths, imgs, targets = list(zip(*batch))
-        # Remove empty placeholder targets
-        targets = [boxes for boxes in targets if boxes is not None]
+        img_paths, label_paths, imgs, targets = list(zip(*batch))
+
         # Add sample index to targets
         for i, boxes in enumerate(targets):
-            boxes[:, 0] = i
+            if boxes is not None:
+                boxes[:, 0] = i
+
+        # Remove empty placeholder targets
+        targets = [boxes for boxes in targets if boxes is not None]
+
         try:
-            targets = torch.cat(targets, 0) # Fix this. Have to deal with no targets in any of the crops in a batch
+            targets = torch.cat(targets, 0)  # Fix this. Have to deal with no targets in any of the crops in a batch
         except RuntimeError:  # If no targets in all 8 crops
-            return paths, imgs, None
+            return img_paths, label_paths, imgs, None
         # Selects new image size every tenth batch
         if self.multiscale and self.batch_count % 10 == 0:
             self.img_size = random.choice(range(self.min_size, self.max_size + 1, 32))
         # Resize images to input shape
         imgs = torch.stack([resize(img, self.img_size) for img in imgs])
         self.batch_count += 1
-        return paths, imgs, targets
+        return img_paths, label_paths, imgs, targets
 
     def __len__(self):
         return len(self.img_files)

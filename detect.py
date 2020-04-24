@@ -31,13 +31,13 @@ if __name__ == "__main__":
 
     os.makedirs("output", exist_ok=True)
 
-    #opt.model_def = 'config/yolov3visdrone.cfg'
-    #opt.weights_path = 'C:/Projects/PyTorch-YOLOv3/checkpoints/yolov3_ckpt_99.pth'
-    #opt.visdrone = True
-    #opt.image_folder = 'C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val'
-    #opt.conf_thres = 0.4
-    #opt.nms_thres = 0.2
-    #opt.class_path = 'data/visdrone.names'
+    opt.model_def = 'config/yolov3visdrone.cfg'
+    opt.weights_path = 'C:/Projects/PyTorch-YOLOv3/checkpoints/yolov3_ckpt_99.pth'
+    opt.visdrone = True
+    opt.image_folder = 'C:/Projects/PyTorch-YOLOv3/data/visdrone/images/val'
+    opt.conf_thres = 0.8
+    opt.nms_thres = 0.4
+    opt.class_path = 'data/visdrone.names'
     # Set up model
     model = Darknet(opt.model_def, img_size=opt.img_size).to(device)
 
@@ -67,6 +67,9 @@ if __name__ == "__main__":
     print("\nPerforming object detection:")
     prev_time = time.time()
     for batch_i, (img_paths, input_imgs) in enumerate(dataloader):
+        if batch_i>10:
+            break
+
         # Configure input
         input_imgs = Variable(input_imgs.type(Tensor))
 
@@ -90,4 +93,4 @@ if __name__ == "__main__":
     for img_i, (path, detections) in enumerate(zip(imgs, img_detections)):
 
         print("(%d) Image: '%s'" % (img_i, path))
-        printBBoxes(path, detections, classes, img_size=opt.img_size)
+        printBBoxes(path, detections, classes, img_size=opt.img_size,  add_labels=True)

@@ -240,7 +240,7 @@ def bbox_iou(box1, box2, x1y1x2y2=True):
     return iou
 
 
-def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
+def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4, score_thresh=0.5):
     """
     Removes detections with lower object confidence score than 'conf_thres' and performs
     Non-Maximum Suppression to further filter detections.
@@ -249,7 +249,7 @@ def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
     """
 
     # From (center x, center y, width, height) to (x1, y1, x2, y2)
-    #prediction[..., :4] = xywh2xyxy(prediction[..., :4])
+    # prediction[..., :4] = xywh2xyxy(prediction[..., :4])
     output = [None for _ in range(len(prediction))]
     for image_i, image_pred in enumerate(prediction):
         # Filter out confidence scores below threshold
@@ -273,9 +273,8 @@ def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
             invalid = large_overlap & label_match
             weights = detections[invalid, 4:5]
             # Merge overlapping bboxes by order of confidence
-            
             if sum(np.isnan(detections[0, :4])) > 0:
-                detections = detections[1:,:]
+                detections = detections[1:, :]
                 print('nan in evaluate detection')
             else:
                 detections[0, :4] = (weights * detections[invalid, :4]).sum(0) / weights.sum()
@@ -283,7 +282,9 @@ def non_max_suppression(prediction, conf_thres=0.5, nms_thres=0.4):
                 detections = detections[~invalid]
 
         if keep_boxes:
+            keep_boxes = [box for box in keep_boxes if box[5] > score_thresh]
             output[image_i] = torch.stack(keep_boxes)
+
 
     return output
 
@@ -345,30 +346,47 @@ def build_targets(pred_boxes, pred_cls, target, anchors, ignore_thres):
     return iou_scores, class_mask, obj_mask, noobj_mask, tx, ty, tw, th, tcls, tconf
 
 
-def printBBoxes(path, detections, classes, img_size=416, rescale=True):
+def printBBoxes(path, boxes, classes, image=None, img_size=416, rescale=True, suffix='', add_labels=False):
     '''
-    Given a detection and an image path, return a figure of bounding boxes
+    Given a detection and an image path, return a figure of bounding boxes.
 
+    Boxes are expected to and in format: Center X, Center Y, Width, Height.
     Input:
         path: path to i
+        batch_boxes: list of bounding boxes in format [x1, y1, x2, y2, conf, cls_conf, cls_pred]
+        classes: list of strings with classes names
+        imgs: list of images (assumed to be a pytorch tensor of size [h,w,c])
+    Optional Input:
+        img_size: integer describing the crop_size
+        rescale: Flag to rescale images that have been shrunk and padded (needs to be True if to_pad is used in dataloader)
+        add_labels: Flag to add labels to image. 
+        suffix: string that will appear at the end of the filename
     '''
     # Get list of 20 bounding-box colors
     cmap = plt.get_cmap("tab20b")
     colors = [cmap(i) for i in np.linspace(0, 1, 20)]
     # Create plot, place image into plot
-    img = np.array(Image.open(path))
-    plt.figure()
-    fig, ax = plt.subplots(1)
-    ax.imshow(img)
-    # Draw bounding boxes and labels of detections
-    if detections is not None:
+    if image is None:
+        image = np.array(Image.open(path))
+
+    dpi = 80
+    height, width, nbands = image.shape
+    figsize = width / float(dpi), height / float(dpi)
+    fig = plt.figure(figsize=figsize)
+    ax = fig.add_axes([0, 0, 1, 1])
+    ax.axis('off')
+    # fig, ax = plt.subplots(1)
+    ax.imshow(image, interpolation='nearest')
+
+    # Draw bounding boxes and labels
+    if boxes is not None:
         # Rescale boxes to original image's resolution (if needed)
-        detections[..., :4] = xywh2xyxy(detections[..., :4])
-        detections = rescale_boxes(detections, img_size, img.shape[:2]) if rescale else detections
-        unique_labels = detections[:, -1].cpu().unique()
+        boxes[..., :4] = xywh2xyxy(boxes[..., :4])
+        boxes = rescale_boxes(boxes, img_size, image.shape[:2]) if rescale else boxes
+        unique_labels = boxes[:, -1].cpu().unique()
         n_cls_preds = len(unique_labels)
         bbox_colors = random.sample(colors, n_cls_preds)
-        for x1, y1, x2, y2, conf, cls_conf, cls_pred in detections:
+        for x1, y1, x2, y2, conf, cls_conf, cls_pred in boxes:
 
             print("\t+ Label: %s, Conf: %.5f" % (classes[int(cls_pred)], cls_conf.item()))
 
@@ -381,39 +399,92 @@ def printBBoxes(path, detections, classes, img_size=416, rescale=True):
             # Add the bbox to the plot
             ax.add_patch(bbox)
             # Add label
-            #plt.text(
-            #    x1,
-            #    y1,
-            #    s=classes[int(cls_pred)],
-            #    color="white",
-            #    verticalalignment="top",
-            #    bbox={"color": color, "pad": 0},
-            #)
+            if add_labels:
+                plt.text(
+                    x1,
+                    y1,
+                    s=classes[int(cls_pred)],
+                    color="white",
+                    verticalalignment="top",
+                    bbox={"color": color, "pad": 0},
+                )
 
     # Save generated image with detections
     plt.axis("off")
     plt.gca().xaxis.set_major_locator(NullLocator())
     plt.gca().yaxis.set_major_locator(NullLocator())
     filename = path.split("/")[-1].split(".")[0]
-    plt.savefig(f"output/{filename}.png", bbox_inches="tight", pad_inches=0.0)
+    ax.set(xlim=[0, width], ylim=[height, 0], aspect=1)
+    plt.savefig(f"output/{filename}{suffix}.png", bbox_inches="tight", pad_inches=0.0, dpi=dpi, transparent=True)
     plt.close()
 
 
-def printGTBBoxes(paths, batch_boxes, classes, imgs, img_size=416):
-    w = img_size
-    h = img_size
-    num_images = imgs.shape[0] if len(imgs.shape) > 3 else 1
-    for idx in range(num_images):
-        boxes = torch.stack([box for box in batch_boxes if box[0] == idx])
-        boxes[:, 4] = boxes[:, 4] * w
-        boxes[:, 5] = boxes[:, 5] * h
-        boxes[:, 2] = boxes[:, 2] * w
-        boxes[:, 3] = boxes[:, 3] * h
-        targets = torch.zeros((len(boxes), 7))
-        targets[:, 0:4] = boxes[:, 2:]
-        targets[:, 6] = boxes[:, 1]
-        targets[:, 4] = torch.ones(1, (len(boxes)))
-        targets[:, 5] = torch.ones(1, (len(boxes)))
-        img = imgs[idx, :, :, :].transpose(0, 2).transpose(0, 1)
-        path = paths[idx]
-        printBBoxes(path, targets, classes, img_size=img_size)
+def printGTBBoxes(img_paths, batch_boxes, classes, imgs, img_size=416, from_files=False, label_paths=None, suffix=''):
+    '''
+    The printBBoxes method is setup to print detections, not ground truth labels. THis method sets up
+    ground truth images and bounding boxes into the right format and calls the printBBoxes method. This
+    method can also pull images and labels from files when the from_files tag is True and print ground
+    truths images.
+
+    Boxes are expected to be rescaled [0-1] and in format: Center X, Center Y, Width, Height.
+
+    Required Input (n = batch size):
+        img_paths: list of strings with paths to the images
+        batch_boxes: list of bounding boxes in format [id, class, cx, cy, w, h]
+        classes: list of strings with classes names
+        imgs: list of images (assumed to be a pytorch tensor of size [c, h, w] or [n, c, h, w])
+    Optional Input:
+        img_size: integer describing the crop_size
+        from_files: Boolean variable on whether boxes/images are provided or must be pulled from files
+        label_paths: list of strings with path to the bounding box labels, only necessary if from_files is True
+        suffix: string that will appear at the end of the filename
+
+    '''
+
+    if not from_files:
+        w = img_size
+        h = img_size
+        num_images = imgs.shape[0] if len(imgs.shape) > 3 else 1
+        for idx in range(num_images):
+            box_list = [box for box in batch_boxes if box[0] == idx]
+            if len(box_list) > 0:
+                boxes = torch.stack(box_list)
+                # Convert rescaled boxes to pixel range, reshape into expected format and add dummy confidence values
+                targets = torch.zeros((len(boxes), 7))
+                targets[:, 0] = boxes[:, 2] * w
+                targets[:, 1] = boxes[:, 3] * h
+                targets[:, 2] = boxes[:, 4] * w
+                targets[:, 3] = boxes[:, 5] * h
+                targets[:, 4] = torch.ones(1, (len(boxes)))
+                targets[:, 5] = torch.ones(1, (len(boxes)))
+                targets[:, 6] = boxes[:, 1]
+
+                if len(imgs.shape) == 4:
+                    img = imgs[idx, :, :, :].transpose(0, 2).transpose(0, 1)
+                else:
+                    img = imgs.transpose(0, 2).transpose(0, 1)
+
+                if num_images > 1:
+                    img_path = img_paths[idx]
+                else:
+                    img_path = img_paths
+
+                printBBoxes(img_path, targets, classes, image=img, img_size=img_size, rescale=False, suffix=suffix)
+
+    if from_files:
+        for img_path, label_path in zip(img_paths, label_paths):
+            image = np.array(Image.open(img_path))
+            boxes = torch.from_numpy(np.loadtxt(label_path).reshape(-1, 5))
+
+            w = image.shape[1]
+            h = image.shape[0]
+            # Reshape into expected format and add dummy confidence values
+            targets = torch.zeros((len(boxes), 7))
+            targets[:, 0] = boxes[:, 1] * w
+            targets[:, 1] = boxes[:, 2] * h
+            targets[:, 2] = boxes[:, 3] * w
+            targets[:, 3] = boxes[:, 4] * h
+            targets[:, 4] = torch.ones(1, (len(boxes)))
+            targets[:, 5] = torch.ones(1, (len(boxes)))
+            targets[:, 6] = boxes[:, 0]
+            printBBoxes(img_path, targets, classes, image=image, img_size=img_size, rescale=False, suffix=suffix)

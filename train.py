@@ -2,7 +2,7 @@ from __future__ import division
 
 from models import Darknet
 from utils.logger import Logger
-from utils.utils import load_classes, weights_init_normal, printBBoxes, printGTBBoxes
+from utils.utils import load_classes, weights_init_normal, printGTBBoxes
 from utils.datasets import ListDataset
 from utils.parse_config import parse_data_config
 from test import evaluate
@@ -108,9 +108,10 @@ if __name__ == "__main__":
     for epoch in range(opt.epochs):
         model.train()
         start_time = time.time()
-        for batch_i, (paths, imgs, targets) in enumerate(dataloader):
-            #printGTBBoxes(paths, targets, class_names, imgs, img_size=imgs.shape[3])
-            #break
+        for batch_i, (img_paths, label_paths, imgs, targets) in enumerate(dataloader):
+            # printGTBBoxes(img_paths, targets, class_names, imgs, img_size=imgs.shape[3], label_paths=label_paths, from_files=True, suffix='_full')
+            # printGTBBoxes(img_paths, targets, class_names, imgs, img_size=imgs.shape[3], from_files=False, suffix='_crop')
+            # break
             if targets is None:
                 continue
             batches_done = len(dataloader) * epoch + batch_i
