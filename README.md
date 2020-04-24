@@ -42,7 +42,8 @@ $ python3 train.py --data_config config/visdrone.data  --pretrained_weights weig
     Place validation labels in /PyTorch-YOLOv3/visdrone/annotations/val/
     $ python /data/visdrone/formatVISDRONE.py
     The folder "/PyTorch-YOLOv3/visdrone/annotations/" can be deleted or ignored
-    Download Checkpoint and place in /PyTorch-YOLOv3/checkpoints 
+    Download Checkpoint from: https://drive.google.com/open?id=1fYvLZz97lE_FXjM2Bo5stkB7l50RQkW- 
+    Place Checkpoint in /PyTorch-YOLOv3/checkpoints 
     
 ## Test
 Evaluates the model on COCO test.
