@@ -42,6 +42,7 @@ $ python3 train.py --data_config config/visdrone.data  --pretrained_weights weig
     Place validation labels in /PyTorch-YOLOv3/visdrone/annotations/val/
     $ python /data/visdrone/formatVISDRONE.py
     The folder "/PyTorch-YOLOv3/visdrone/annotations/" can be deleted or ignored
+    Download Checkpoint and place in /PyTorch-YOLOv3/checkpoints 
     
 ## Test
 Evaluates the model on COCO test.
@@ -54,6 +55,12 @@ Evaluates the model on COCO test.
 | YOLOv3 608 (this impl.) | 57.3              |
 | YOLOv3 416 (paper)      | 55.3              |
 | YOLOv3 416 (this impl.) | 55.5              |
+
+#### Example (VISDRONE)
+To test on VISDRONE using a checkpoint run (since all parameters for this are hardcoded in detect.py):
+```
+$ python3 detect.py
+```
 
 ## Inference
 Uses pretrained weights to make predictions on images. Below table displays the inference times when using as inputs images scaled to 256x256. The ResNet backbone measurements are taken from the YOLOv3 paper. The Darknet-53 measurement marked shows the inference time of this implementation on my 1080ti card.
